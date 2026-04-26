@@ -4104,7 +4104,7 @@ async function uygulamaBaslat(user) {
     .on('postgres_changes', {
       event: 'INSERT',
       schema: 'public',
-      table: 'kolaypidenlar',
+      table: 'kolaycafenlar',
       filter: 'kafe_id=eq.'+kafeId
     }, async (payload) => {
       const a = payload.new;
@@ -4642,7 +4642,7 @@ async function kolaypidenVerisiYukle() {
   let sayfa = 0;
   const SAYFA_BOYUTU = 1000;
   while (true) {
-    const {data, error} = await sb.from('kolaypidenlar').select('*')
+    const {data, error} = await sb.from('kolaycafenlar').select('*')
       .eq('kafe_id', kafeId)
       .neq('odeme_tipi', 'cari_tahsil')
       .gte('created_at', bugunBas.toISOString())
@@ -4875,7 +4875,7 @@ async function offlineKuyrukGonder() {
         basarili.push(kolaypiden._kayitKey);
         continue;
       }
-      await sb.from('kolaypidenlar').insert({
+      await sb.from('kolaycafenlar').insert({
         kafe_id: kafeId,
         masa_no: isNaN(parseInt(kolaypiden.masa)) ? 0 : parseInt(kolaypiden.masa),
         masa_ad: kolaypiden.masaAd, toplam: kolaypiden.toplam,
@@ -4922,7 +4922,7 @@ async function kolaypidenKaydet(kolaypiden) {
   }
 
   try {
-    await sb.from('kolaypidenlar').insert({
+    await sb.from('kolaycafenlar').insert({
       kafe_id: kafeId,
       masa_no: isNaN(parseInt(kolaypiden.masa)) ? 0 : parseInt(kolaypiden.masa),
       masa_ad: kolaypiden.masaAd,
@@ -6289,7 +6289,7 @@ async function adisyonGeriAl(a) {
 
   // 6. Supabase'den sil
   if (a.id) {
-    try { await sb.from('kolaypidenlar').delete().eq('id', a.id); } catch(e) { console.error(e); }
+    try { await sb.from('kolaycafenlar').delete().eq('id', a.id); } catch(e) { console.error(e); }
   }
 
   // 7. Local listeden kaldır
@@ -6306,7 +6306,7 @@ async function adisyonSil(a) {
 
   // Supabase'den sil
   if (a.id) {
-    try { await sb.from('kolaypidenlar').delete().eq('id', a.id); } catch(e) { console.error(e); }
+    try { await sb.from('kolaycafenlar').delete().eq('id', a.id); } catch(e) { console.error(e); }
   }
 
   // Ciro düzelt
@@ -7968,7 +7968,7 @@ async function cariSiparisKaydet() {
   });
   
   // kolaypidenlar tablosuna da yaz (raporlama için)
-  await sb.from('kolaypidenlar').insert({
+  await sb.from('kolaycafenlar').insert({
     kafe_id: kafeId, masa_no: 0, masa_ad: '📋 Cari: ' + aktifCariMusteri.ad,
     toplam: 0, garson: aktifGarsonAdi || '', siparisler: cariSepet,
     odeme_tipi: 'cari', musteri_adi: aktifCariMusteri.ad, cari_tutar: toplam
@@ -8572,7 +8572,7 @@ async function raporRenderTam() {
   let filtre = [];
   try {
     const baslangic = donemBaslangic();
-    let q = sb.from('kolaypidenlar').select('*')
+    let q = sb.from('kolaycafenlar').select('*')
       .eq('kafe_id', kafeId)
       .neq('odeme_tipi', 'cari_tahsil')
       .order('created_at', {ascending: false});
@@ -9612,7 +9612,7 @@ async function gelgidRender() {
   // Satış geliri — DB'den çek (bellek sadece bugünü tutar, geçmiş günler eksik kalırdı)
   const satirGelirGunluk = {};
   try {
-    let ggq = sb.from('kolaypidenlar')
+    let ggq = sb.from('kolaycafenlar')
       .select('toplam, odeme_tipi, created_at')
       .eq('kafe_id', kafeId)
       .neq('odeme_tipi', 'cari')
@@ -10829,7 +10829,7 @@ async function vardiyayukle() {
       aktifVardiyaBaslangic = new Date(v.baslangic);
       // Vardiya başlangıcından itibaren TÜM adisyonları say (vardiya_id bağımsız)
       // Bu sayede admin ve garson ekranı her zaman aynı rakamı gösterir
-      const { data: adisyonlar } = await sb.from('kolaypidenlar')
+      const { data: adisyonlar } = await sb.from('kolaycafenlar')
         .select('toplam').eq('kafe_id', kafeId).neq('odeme_tipi','ikram')
         .gte('created_at', v.baslangic);
       vardiyaCiro = (adisyonlar||[]).reduce((t,a) => t + parseFloat(a.toplam||0), 0);
@@ -10864,7 +10864,7 @@ function vardiyaBtnGuncelle() {
     if (hstat) hstat.textContent = Math.round(vardiyaCiro) + '₺';
     // DB'den güncel ciroyu senkronize et (garson + atamasız eklenenler dahil)
     if (kafeId && aktifVardiyaBaslangic && aktifVardiyaId) {
-      sb.from('kolaypidenlar').select('toplam').eq('kafe_id', kafeId)
+      sb.from('kolaycafenlar').select('toplam').eq('kafe_id', kafeId)
         .neq('odeme_tipi','ikram')
         .or(`vardiya_id.eq.${aktifVardiyaId},and(vardiya_id.is.null,created_at.gte.${aktifVardiyaBaslangic.toISOString()})`)
         .then(({ data }) => {
@@ -10981,7 +10981,7 @@ async function vardiyaDetayAc(vardiyaId) {
   if (!icerik) return;
   icerik.innerHTML = `<div style="text-align:center;padding:20px;color:var(--muted);font-size:0.82rem;">Adisyonlar yükleniyor...</div>`;
   try {
-    const { data, error } = await sb.from('kolaypidenlar')
+    const { data, error } = await sb.from('kolaycafenlar')
       .select('*').eq('kafe_id', kafeId).eq('vardiya_id', vardiyaId)
       .order('created_at', { ascending: false });
     if (error) throw error;
@@ -11022,7 +11022,7 @@ function vardiyaAdisyonSatir(a) {
 async function vardiyaAdisyonSil(adisyonId, eskiToplam, vardiyaId) {
   if (!confirm('Bu adisyon silinsin mi? İşlem geri alınamaz.')) return;
   try {
-    await sb.from('kolaypidenlar').delete().eq('id', adisyonId);
+    await sb.from('kolaycafenlar').delete().eq('id', adisyonId);
     // Vardiya cirosunu güncelle
     const { data: vData } = await sb.from('vardiyalar').select('toplam_ciro').eq('id', vardiyaId).single();
     const yeniCiro = Math.max(0, (vData?.toplam_ciro || 0) - eskiToplam);
@@ -11044,7 +11044,7 @@ async function vardiyaAdisyonDuzenle(adisyonId, eskiToplam, vardiyaId) {
   const yeniToplam = parseFloat(yeniStr.replace(',', '.'));
   if (isNaN(yeniToplam) || yeniToplam < 0) { toast('Geçersiz tutar!'); return; }
   try {
-    await sb.from('kolaypidenlar').update({ toplam: yeniToplam }).eq('id', adisyonId);
+    await sb.from('kolaycafenlar').update({ toplam: yeniToplam }).eq('id', adisyonId);
     // Fark hesapla ve vardiya cirosunu güncelle
     const fark = yeniToplam - eskiToplam;
     const { data: vData } = await sb.from('vardiyalar').select('toplam_ciro').eq('id', vardiyaId).single();
@@ -11105,7 +11105,7 @@ async function vardiyaKapatModal() {
   // DB'den güncel ciroyu çek — garson + atamasız eklenenler dahil
   let gercekCiro = vardiyaCiro;
   try {
-    const { data: adisyonlar } = await sb.from('kolaypidenlar')
+    const { data: adisyonlar } = await sb.from('kolaycafenlar')
       .select('toplam').eq('kafe_id', kafeId).neq('odeme_tipi','ikram')
       .or(`vardiya_id.eq.${aktifVardiyaId},and(vardiya_id.is.null,created_at.gte.${aktifVardiyaBaslangic.toISOString()})`);
     if (adisyonlar) {
@@ -11206,7 +11206,7 @@ async function vardiyaGecmisYukleMusahebe() {
     }
 
     // Atamasız adisyonları çek (vardiya_id = NULL)
-    const { data: atamasizlar } = await sb.from('kolaypidenlar')
+    const { data: atamasizlar } = await sb.from('kolaycafenlar')
       .select('id, toplam, created_at').eq('kafe_id', kafeId)
       .is('vardiya_id', null).neq('odeme_tipi', 'ikram')
       .order('created_at', { ascending: true });
@@ -11267,7 +11267,7 @@ async function atamasizlariVardiyayaEkle(vardiyaId, atamasizIds, eklenecekToplam
   if (!confirm(`${atamasizIds.length} adisyon bu vardiyaya eklensin mi?\n\nEklenen ciro: ${Math.round(eklenecekToplam).toLocaleString('tr-TR')}₺`)) return;
   try {
     // Adisyonları vardiyaya bağla
-    await sb.from('kolaypidenlar')
+    await sb.from('kolaycafenlar')
       .update({ vardiya_id: vardiyaId })
       .in('id', atamasizIds);
     // Vardiya cirosunu güncelle
@@ -11293,7 +11293,7 @@ async function mvDetayAc(vardiyaId, btn) {
   }
   btn.textContent = '⏳ Yükleniyor...';
   try {
-    const { data, error } = await sb.from('kolaypidenlar')
+    const { data, error } = await sb.from('kolaycafenlar')
       .select('*').eq('kafe_id', kafeId).eq('vardiya_id', vardiyaId)
       .order('created_at', { ascending: false });
     if (error) throw error;
@@ -11334,7 +11334,7 @@ function mvAdisyonSatir(a, vardiyaId) {
 async function mvAdisyonSil(adisyonId, eskiToplam, vardiyaId) {
   if (!confirm('Bu adisyon silinsin mi? İşlem geri alınamaz.')) return;
   try {
-    await sb.from('kolaypidenlar').delete().eq('id', adisyonId);
+    await sb.from('kolaycafenlar').delete().eq('id', adisyonId);
     const { data: vData } = await sb.from('vardiyalar').select('toplam_ciro').eq('id', vardiyaId).single();
     const yeniCiro = Math.max(0, (vData?.toplam_ciro || 0) - eskiToplam);
     await sb.from('vardiyalar').update({ toplam_ciro: yeniCiro }).eq('id', vardiyaId);
@@ -11355,7 +11355,7 @@ let _mvDmEskiToplam = 0;
 
 async function mvUrunDuzenleAc(adisyonId, vardiyaId) {
   // Adisyon verisini DB'den çek
-  const { data, error } = await sb.from('kolaypidenlar').select('*').eq('id', adisyonId).single();
+  const { data, error } = await sb.from('kolaycafenlar').select('*').eq('id', adisyonId).single();
   if (error || !data) { toast('Adisyon yüklenemedi'); return; }
   _mvDmAdisyonId = adisyonId;
   _mvDmVardiyaId = vardiyaId;
@@ -11434,7 +11434,7 @@ async function mvDuzenleKaydet() {
       }
     }
     // Adisyonu güncelle
-    await sb.from('kolaypidenlar').update({ siparisler: yeniSiparisler, toplam: yeniToplam }).eq('id', _mvDmAdisyonId);
+    await sb.from('kolaycafenlar').update({ siparisler: yeniSiparisler, toplam: yeniToplam }).eq('id', _mvDmAdisyonId);
     // Vardiya cirosunu güncelle
     const fark = yeniToplam - _mvDmEskiToplam;
     const { data: vData } = await sb.from('vardiyalar').select('toplam_ciro').eq('id', _mvDmVardiyaId).single();
@@ -12156,7 +12156,7 @@ async function kasaRender() {
   let nakitGelir = 0, kartGelir = 0;
   let satirGelirler = [];
   try {
-    let aq = sb.from('kolaypidenlar').select('toplam,odeme_tipi,created_at,masa_ad,garson').eq('kafe_id', kafeId).gte('created_at', baslangic).order('created_at',{ascending:false});
+    let aq = sb.from('kolaycafenlar').select('toplam,odeme_tipi,created_at,masa_ad,garson').eq('kafe_id', kafeId).gte('created_at', baslangic).order('created_at',{ascending:false});
     if (bitis) aq = aq.lte('created_at', bitis);
     const { data: adisyonlar } = await aq;
     let satirNakit = 0, satirKart = 0;
@@ -12846,7 +12846,7 @@ async function gelAlGecmisYukle() {
   liste.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-size:0.85rem;">⏳ Yükleniyor...</div>';
 
   try {
-    const { data, error } = await sb.from('kolaypidenlar')
+    const { data, error } = await sb.from('kolaycafenlar')
       .select('*')
       .eq('kafe_id', kafeId)
       .eq('masa_no', 0)
@@ -15730,7 +15730,7 @@ async function aiVeriTopla() {
     baslangic = d.toISOString();
   }
 
-  let q = sb.from('kolaypidenlar').select('*').eq('kafe_id', kafeId).order('created_at', {ascending: true});
+  let q = sb.from('kolaycafenlar').select('*').eq('kafe_id', kafeId).order('created_at', {ascending: true});
   if (baslangic) q = q.gte('created_at', baslangic);
   const { data, error } = await q;
   if (error) throw new Error('Supabase hatası: ' + error.message);
@@ -15792,7 +15792,7 @@ async function aiVeriTopla() {
     const oncekiBitis = new Date(baslangic);
     const sure = now - oncekiBitis;
     const oncekiBaslangic = new Date(oncekiBitis - sure);
-    const { data: oncekiData } = await sb.from('kolaypidenlar').select('toplam')
+    const { data: oncekiData } = await sb.from('kolaycafenlar').select('toplam')
       .eq('kafe_id', kafeId)
       .gte('created_at', oncekiBaslangic.toISOString())
       .lt('created_at', baslangic);
@@ -16240,14 +16240,14 @@ async function haftalikRaporUret() {
     if (tarihEl) tarihEl.textContent = fmt2(buHaftaBas) + ' – ' + fmt2(now) + ' | Geçen hafta karşılaştırmalı';
 
     // Bu haftanın adisyonları
-    const { data: buData } = await sb.from('kolaypidenlar').select('*')
+    const { data: buData } = await sb.from('kolaycafenlar').select('*')
       .eq('kafe_id', kafeId)
       .gte('created_at', buHaftaBas.toISOString())
       .order('created_at', { ascending: true });
     const buAdisyonlar = buData || [];
 
     // Geçen haftanın adisyonları
-    const { data: gecenData } = await sb.from('kolaypidenlar').select('toplam')
+    const { data: gecenData } = await sb.from('kolaycafenlar').select('toplam')
       .eq('kafe_id', kafeId)
       .gte('created_at', gecenHaftaBas.toISOString())
       .lt('created_at', gecenHaftaBit.toISOString());
