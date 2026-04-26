@@ -219,7 +219,7 @@
   </div>
 
 <script>
-const SB_URL = 'KOLAYPIDE_SUPABASE_URL';
+const SB_URL = 'https://czweeichbluqjtjzlsyw.supabase.co';
 const SB_KEY = 'sb_publishable_U2HwJrtzeqkVpmq3JENmMA_3PqE-aOa';
 const sb = supabase.createClient(SB_URL, SB_KEY);
 
@@ -289,7 +289,7 @@ function bildirim(masaAdi, adet, garsonCagri=false){
 }
 
 async function mutfakGiris(){
-  sesCtxBaslat();
+  try { sesCtxBaslat(); } catch(e) {}
   const kod=document.getElementById('kode').value.trim();
   if(!kod){gosterErr('Restoran kodu girin!');return;}
   // Büyük/küçük harf bağımsız ara
