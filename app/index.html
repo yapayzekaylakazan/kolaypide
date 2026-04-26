@@ -3649,12 +3649,26 @@ async function kayitOl() {
   
   const plnBitis = new Date(); plnBitis.setDate(plnBitis.getDate()+10);
   const kafeKoduYeni = Math.random().toString(36).substring(2,8).toUpperCase();
+  // Varsayılan ürünleri çek — yeni üye açılışta menü hazır gelsin
+  let varsayilanUrunler = {};
+  try {
+    const {data: sablonData} = await sb.from('varsayilan_urunler').select('urunler').order('id', {ascending:false}).limit(1).single();
+    if (sablonData?.urunler) {
+      const urunDizisi = Array.isArray(sablonData.urunler) ? sablonData.urunler : [];
+      urunDizisi.forEach(u => {
+        const kat = u.kategori || 'Genel';
+        if (!varsayilanUrunler[kat]) varsayilanUrunler[kat] = [];
+        varsayilanUrunler[kat].push(u);
+      });
+    }
+  } catch(e) {}
   await sb.from('kafeler').insert({
     user_id: data.user.id, kafe_adi: kafe,
     email: email,
     plan: 'pro', plan_bitis: plnBitis.toISOString(),
     telefon: tel, adres: adres,
     garsonlar: [],
+    urunler: varsayilanUrunler,
     kafe_kodu: kafeKoduYeni,
     kupon_kodu: kuponKodu || null,
     kupon_indirim: kuponIndirim,
