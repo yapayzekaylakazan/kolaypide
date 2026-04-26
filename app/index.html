@@ -5668,7 +5668,18 @@ let _varyantSecimler = {}; // {grupAdi: [secilenler]}
 function varyantModalAc(u) {
   _varyantModalUrun = u;
   _varyantSecimler = {};
-  const varyantlar = u.varyantlar || [];
+  let varyantlar = u.varyantlar || [];
+
+  // Eski format desteği: [{ad:"Tek",fiyat:0},...] → [{ad:"Boyut",secenekler:[{isim:"Tek",fiyatFark:0},...]}]
+  if (varyantlar.length > 0 && varyantlar[0].secenekler === undefined) {
+    varyantlar = [{
+      ad: 'Porsiyon',
+      tip: 'radio',
+      zorunlu: false,
+      secenekler: varyantlar.map(v => ({ isim: v.ad, fiyatFark: v.fiyat || 0 }))
+    }];
+  }
+
   document.getElementById('varyant-modal-baslik').textContent = u.isim + ' — Seçenekler';
   const icerik = document.getElementById('varyant-modal-icerik');
   icerik.innerHTML = '';
