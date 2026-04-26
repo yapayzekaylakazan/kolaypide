@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="KolayPide">
-<link rel="manifest" href="../manifest.json">
+<link rel="manifest" href="/kolaypide/manifest.json">
 <link rel="apple-touch-icon" href="../icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -3413,7 +3413,7 @@
   <button id="btn-kilit-cikis" style="background:none;border:none;color:var(--muted);font-family:'Nunito',sans-serif;font-size:0.85rem;font-weight:700;cursor:pointer;display:block;margin:0 auto;">Çıkış Yap</button>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 // ════════════════════════════════════════
 // SUPABASE BAŞLAT
 // ════════════════════════════════════════
@@ -14229,7 +14229,7 @@ document.addEventListener('fullscreenchange', () => {
 // SW temizle
 if ('serviceWorker' in navigator) {
   // SW'yi kaydet - network-first cache temizleyici olarak
-  navigator.serviceWorker.register('../sw.js', { scope: '../' })
+  navigator.serviceWorker.register('/kolaypide/sw.js', { scope: '/kolaypide/' })
     .then(reg => {
       // Yeni SW varsa hemen aktiflleştir
       reg.addEventListener('updatefound', () => {
