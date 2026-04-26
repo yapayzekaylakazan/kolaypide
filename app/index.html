@@ -5701,12 +5701,19 @@ function varyantModalAc(u) {
       btn.dataset.fiyatFark = s.fiyatFark || 0;
       btn.addEventListener('click', () => {
         btn.classList.remove('hata');
-        btn.classList.toggle('secili');
+        // Radio gibi davran — aynı gruptaki diğerlerini kaldır
+        [...secDiv.querySelectorAll('.vgrup-btn')].forEach(b => b.classList.remove('secili'));
+        btn.classList.add('secili');
         const secili = [...secDiv.querySelectorAll('.vgrup-btn.secili')].map(b => b.dataset.secenek);
         _varyantSecimler[grup.ad] = secili;
         _varyantFiyatGuncelle();
       });
       secDiv.appendChild(btn);
+      // İlk seçeneği otomatik seçili yap
+      if (secDiv.querySelectorAll('.vgrup-btn').length === 1) {
+        btn.classList.add('secili');
+        _varyantSecimler[grup.ad] = [s.isim];
+      }
     });
   });
   _varyantFiyatGuncelle();
