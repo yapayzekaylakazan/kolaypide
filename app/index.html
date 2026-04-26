@@ -5747,7 +5747,17 @@ function varyantSecimiOnayla() {
   // Seçimleri ve fiyat farkını hesapla
   let fiyatFarki = 0;
   const secimListesi = [];
-  varyantlar.forEach(grup => {
+
+  // Eski format desteği: [{ad:"Tek",fiyat:0},...] normalize et
+  let normalVaryantlar = varyantlar;
+  if (varyantlar.length > 0 && varyantlar[0].secenekler === undefined) {
+    normalVaryantlar = [{
+      ad: 'Porsiyon',
+      secenekler: varyantlar.map(v => ({ isim: v.ad, fiyatFark: v.fiyat || 0 }))
+    }];
+  }
+
+  normalVaryantlar.forEach(grup => {
     const secili = _varyantSecimler[grup.ad] || [];
     secili.forEach(isim => {
       secimListesi.push(isim);
